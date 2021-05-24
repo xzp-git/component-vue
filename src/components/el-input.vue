@@ -11,7 +11,7 @@ export default {
   methods: {
     handleInput(e) {
         this.$emit('input',e.target.value)
-        // this.$dispatch('elFormItem','changeValue');
+        this.$dispatch('elFormItem','changeValue');
         // this.$emit('update:value',e.target.value)
     },
   },
