@@ -1,17 +1,22 @@
 <template>
   <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <!-- <clickOutSide></clickOutSide> -->
+    <!-- <vueLazyLoad></vueLazyLoad> -->
+    <Form></Form>
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+// import clickOutSide from "@/components/click-outside";
+// import vueLazyLoad from "@/components/vue-lazyload.vue";
+import Form from "@/components/form.vue";
 
 export default {
   name: 'App',
-  components: {
-    HelloWorld
+  components:{
+    // clickOutSide,
+    // vueLazyLoad,
+    Form,
   }
 }
 </script>
