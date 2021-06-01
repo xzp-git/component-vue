@@ -1,12 +1,46 @@
 import Vue from "vue";
 import Vuex from "@/vuex"
 // import Vuex from "vuex"
+// import logger from "vuex/dist/logger";
 
 
 Vue.use(Vuex)
 
+function logger() {
+    
+    return function (store) {
+        let prevState = JSON.stringify(store.state)
+        store.subscribe((mutation, state) => { //所有的更新操作都基于mutation (状态变化都会通过mutations)
+            //如果手动的更新 此subscribe是不会执行  commit()
+            console.log('prevState',prevState);
+            console.log('mutation',mutation);
+            console.log('currentState',JSON.stringify(state));
+
+            prevState = JSON.stringify(state)
+        })
+    }
+}
+
+function persists() {
+    return function (store) {
+        let localState = JSON.parse(localStorage.getItem('VUEX:STATE'))
+       if (localState) {
+           store.replaceState(localState)
+       }
+        store.subscribe((mutation, state) => {
+            // 状态一变化 旧村localStorage
+            //防抖
+            localStorage.setItem('VUEX:STATE',JSON.stringify(state))
+            
+        })
+    }
+}
 
 export default new Vuex.Store({
+    plugins:[
+        persists(), //每次状态变化都可以存入到localStorage
+        logger()
+    ],
     state:{
         name:'zf',
         age:12
@@ -25,7 +59,6 @@ export default new Vuex.Store({
     },
     getters:{
         myAge(state){
-            console.log("getters!!!!!!!!");
             return state.age + 10
         }
     },
