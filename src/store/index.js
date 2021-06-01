@@ -115,29 +115,5 @@ export default new Vuex.Store({
                 }
             }
         },
-        b:{
-            namespaced:true,
-            state:{
-                name:'t2',
-                age:20
-            },
-            getters:{
-                myAge(state){
-                    return state.age +66
-                }
-            },
-            mutations:{
-                changeAge(state,payload){
-                     state.age += payload 
-                }
-            },
-            actions:{
-                changeAge({commit}, payload){
-                    setTimeout(() => {
-                        commit('changeAge', payload)
-                    }, 1000);
-                }
-            },
-        }
     }
 })

@@ -9,7 +9,7 @@ class ModuleCollection {
     }
     register(path, rawModule) {
         let newModule = new Module(rawModule)
-
+        rawModule.newModule = newModule
         if (path.length == 0) {
             this.root = newModule
         }else{

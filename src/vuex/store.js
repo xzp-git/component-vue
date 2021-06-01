@@ -52,6 +52,32 @@ function installModule(store, rootState, path, module) {
   
 }
 
+function resetVm(store, state) {
+
+  let oldVm = store._vm
+  store.getters = {}
+  const computed = {}
+      forEach(store.wrapperGetters, (fn, key) => {
+        computed[key] = () => {
+            return fn()  //为了保证参数是state
+        }
+        // 当我们去getters上取值 需要去computed上取值
+        Object.defineProperty(store.getters, key, {
+            get: () => store._vm[key]  //具备了缓存的功能
+        })
+    })
+    store._vm = new Vue({
+        data:{
+          $$state:state
+        },
+        computed
+      })
+      if (oldVm) {
+        //重新创建实例后，需要将老的实例卸载掉
+        Vue.nextTick(() => oldVm.$destroy())
+      }
+}
+
 class Store{
     constructor(options){
          
@@ -60,29 +86,13 @@ class Store{
       this.wrapperGetters = {} //我们需要将模块中的所有的getters，mutations，actions 进行收集
       this.mutations = {}
       this.actions = {}
-      this.getters = {}
      this._subscribes = []
      
       // 没有namespace的时候 getters都放在根上，actions，mutations会被合并到数组上
       let state = options.state
       installModule(this, state, [], this._modules.root)
-
-      const computed = {}
-      forEach(this.wrapperGetters, (fn, key) => {
-        computed[key] = () => {
-            return fn()  //为了保证参数是state
-        }
-        // 当我们去getters上取值 需要去computed上取值
-        Object.defineProperty(this.getters, key, {
-            get: () => this._vm[key]  //具备了缓存的功能
-        })
-    })
-      this._vm = new Vue({
-        data:{
-          $$state:state
-        },
-        computed
-      })
+      resetVm(this,state)
+      
       if (options.plugins) { //说明用户使用了插件
         options.plugins.forEach(plugin => plugin(this))
       }
@@ -95,6 +105,22 @@ class Store{
       this._vm._data.$$state = newState //替换最新的
 
       // 虽然替换了状态，但是mutation getter 中的state在初始化安装的时候已经绑定了 老的状态
+    }
+    registerModule(path, module){ //最终都转换成数组
+      if (typeof path === 'string') {
+        path = [path]
+      }
+      //这个模块使用户写的
+      this._modules.register(path,module) //模块的注册
+
+       
+
+      //注册完毕后 安装
+      installModule(this, this.state, path,module.newModule)
+      
+      // vuex内部重新注册的话，会生成实例，虽然重新安装了，只解决了状态的问题到 但是computed就丢失了
+      
+      resetVm(this,this.state)
     }
     get state () {
       return this._vm._data.$$state
