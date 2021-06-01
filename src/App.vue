@@ -25,6 +25,7 @@
     {{ $store.state.b && $store.state.b.age }}
 
     {{$store.state.b && $store.getters.bAge}}
+     <button type="button" @click="$store.state.age++">非法更改</button>
   </div>
 </template>
 

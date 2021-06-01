@@ -62,6 +62,7 @@ export default new Vuex.Store({
             return state.age + 10
         }
     },
+    strict:true,//如果不是在mutation中操作的状态会发生警告
     modules:{ 
         a:{
             // 解决父模块和子模块命名冲突的问题，没有命名空间 默认getters都会被定义在父模块上

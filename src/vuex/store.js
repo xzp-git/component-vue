@@ -22,8 +22,10 @@ function installModule(store, rootState, path, module) {
       return mome[current] 
     },rootState)
     // 对象新增属性不能导致更新视图
-
-    Vue.set(parent, path[path.length-1], module.state)
+    store._withCommitting(()=>{
+      Vue.set(parent, path[path.length-1], module.state)
+    })
+    
     // parent[path[path.length-1]] = module.state
   }
   //需要循环当前模块
@@ -35,7 +37,11 @@ function installModule(store, rootState, path, module) {
   module.forEachMutations((fn,key) => {
      store.mutations[nsKey(key)] = store.mutations[nsKey(key)] || [] 
      store.mutations[nsKey(key)].push((payload) => {
-      fn.call(store,getNewState(store,path), payload)//先调用mutation  在执行subscribe
+
+      store._withCommitting(()=>{
+        fn.call(store,getNewState(store,path), payload)//先调用mutation  在执行subscribe
+      })
+      
       store._subscribes.forEach(fn => fn({type:nsKey(key),payload},store.state))
 
      })
@@ -72,6 +78,13 @@ function resetVm(store, state) {
         },
         computed
       })
+      if (store.strict) { //说明严格模式 要监控状态
+        store._vm.$watch(() => store._vm._data.$$state,()=>{
+          // 我希望状态变化后直接就能监控到  不是异步的watcher
+          console.assert(store._committing,"no mutate in mutation handler outside")
+        },{deep:true,sync:true})
+        
+      }
       if (oldVm) {
         //重新创建实例后，需要将老的实例卸载掉
         Vue.nextTick(() => oldVm.$destroy())
@@ -87,7 +100,8 @@ class Store{
       this.mutations = {}
       this.actions = {}
      this._subscribes = []
-     
+     this._committing = false //默认不是在mutaitions 中更改
+     this.strict = options.strict 
       // 没有namespace的时候 getters都放在根上，actions，mutations会被合并到数组上
       let state = options.state
       installModule(this, state, [], this._modules.root)
@@ -98,12 +112,19 @@ class Store{
       }
 
     }
+    _withCommitting(fn){
+      this._committing = true
+      fn()//函数是同步的 获取 _commiting 就是true 如果是异步的那么就会变成false 就会打印日志
+      this._committing = false
+    }
     subscribe(fn){
       this._subscribes.push(fn)
     }
     replaceState(newState){  //需要替换的状态
-      this._vm._data.$$state = newState //替换最新的
-
+      this._withCommitting(() => {
+        this._vm._data.$$state = newState //替换最新的
+      })
+     
       // 虽然替换了状态，但是mutation getter 中的state在初始化安装的时候已经绑定了 老的状态
     }
     registerModule(path, module){ //最终都转换成数组
