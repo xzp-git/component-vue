@@ -28,6 +28,8 @@ class VueRouter {
                 this.history = new HTML5History(this)
                 break;
         }
+
+        this.beforeHooks = []
     
     }
     match(location){
@@ -39,7 +41,9 @@ class VueRouter {
             
         })
     }
-
+    beforeEach(fn){
+        this.beforeHooks.push(fn)
+    }
     init(app) {
         const history = this.history //当前管理路由
         // hash -> hashchange 浏览器支持popState 就优先用popState
