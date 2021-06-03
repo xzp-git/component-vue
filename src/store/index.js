@@ -1,6 +1,6 @@
 import Vue from "vue";
-import Vuex from "@/vuex"
-// import Vuex from "vuex"
+// import Vuex from "@/vuex"
+import Vuex from "vuex"
 // import logger from "vuex/dist/logger";
 
 
