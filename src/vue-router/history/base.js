@@ -59,7 +59,7 @@ export default class History{
         let queue = this.router.beforeHooks
 
         const iterator = (hook,next) => {
-            hook(route,current,next)
+            hook(route,this.current,next)
         }
         //在跳转前 我需要先走对应的钩子
         runQueue(queue,iterator,() => {
